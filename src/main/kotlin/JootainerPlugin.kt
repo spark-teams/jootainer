@@ -2,6 +2,7 @@ package de.sparkteams.jootainer
 
 import org.flywaydb.core.Flyway
 import org.gradle.api.*
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -12,90 +13,119 @@ import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import java.io.File
+import kotlin.system.exitProcess
 
-
-class JootainerPlugin : Plugin<Project> {
-
-    // helper classes
-    class KGenericContainer(imageName: String) : GenericContainer<KGenericContainer>(imageName)
+open class JootainerPlugin : Plugin<Project> {
 
     class KPostgreSQLContainer(imageName: String) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
 
-    open class GenerateJooqFiles : DefaultTask() {
-        var inputDir = "src/main/resources/db/migration"
-        var outputDir = "src/main/kotlin"
-
-        @InputDirectory
-        fun getInputDir(): File {
-            return File(inputDir)
-        }
-
-        @OutputDirectory
-        fun getOutputDir(): File {
-            return File(outputDir)
-        }
-
-        @TaskAction
-
-        fun run() {
-            logger.info("starting postgres container")
-            val container = KPostgreSQLContainer("postgres:11-alpine")
-            container.start()
-            val url = container.jdbcUrl
-            val user = container.username
-            val password = container.password
-            logger.info("successfully started container: ${url}, ${user}, ${password}")
-
-            /* start flyway */
-            logger.info("starting flyway migration")
-            val flyway = Flyway.configure()
-                .dataSource(url, user, password)
-                .load()
-            flyway.info()
-            flyway.migrate()
-            logger.info("flyway migration successful")
-
-            /* jooq code generation */
-
-            logger.info("starting jooq code generation")
-            val jooqConf: Configuration = Configuration()
-                .withJdbc(Jdbc()
-                    .withDriver("org.postgresql.Driver")
-                    .withUrl(url)
-                    .withUser(user)
-                    .withPassword(password)
-                )
-                .withGenerator(Generator()
-                    .withStrategy(Strategy().withName("org.jooq.codegen.DefaultGeneratorStrategy"))
-                    .withDatabase(Database()
-                        .withName("org.jooq.meta.postgres.PostgresDatabase")
-                        .withInputSchema("public")
-                    )
-                    .withGenerate(Generate()
-                        .withRelations(true)
-                        .withRecords(true)
-                        .withImmutablePojos(true)
-//                                    .withFluentSetters(true)
-//                                    .withJavaTimeTypes(true)
-                        .withIndexes(true)
-                        .withRoutines(true)
-                    )
-                    .withTarget(Target()
-                        .withDirectory(outputDir)
-                        .withPackageName("de.markant.voila.persistence.jooq"))
-                )
-
-            GenerationTool.generate(jooqConf)
-            logger.info("jooq code generation successful")
-            container.stop()
-        }
-
-
-    }
-
     override fun apply(project: Project) {
-        val generateJooqFiles = project.tasks.register<GenerateJooqFiles>("generateJooqFiles", GenerateJooqFiles::class.java).get()
+        project.extensions.create("jootainer", JootainerExtension::class.java)
+
+        val generateJooqFiles =
+            project.tasks.register<GenerateJooqFiles>("jootainer", GenerateJooqFiles::class.java).get()
+
+        project.afterEvaluate {
+            var ext = project.extensions.getByType(JootainerExtension::class.java)
+            generateJooqFiles.outputPackageName = ext.packageName
+            generateJooqFiles.outputDirectory = ext.outputDir
+            generateJooqFiles.migrationDirectory = ext.migrationDir
+        }
+
+
+
         project.tasks.getByName("compileKotlin").dependsOn(generateJooqFiles)
         project.tasks.getByName("compileJava").dependsOn(generateJooqFiles)
     }
 }
+
+open class GenerateJooqFiles : DefaultTask() {
+    @InputDirectory
+    var migrationDirectory = "src/main/resources/db/migration"
+
+    @get:Input
+    var outputPackageName = "jootainer";
+
+    @OutputDirectory
+    var outputDirectory = "src/main/kotlin"
+
+
+    @InputDirectory
+    fun getMigrationDir(): File {
+        return File(this.migrationDirectory); }
+
+    @OutputDirectory
+    fun getOutputDir(): File {
+        return File(this.outputDirectory); }
+
+
+    @TaskAction
+    fun run() {
+        logger.info("starting generateJooq task with the following settings")
+        logger.info("package name : " + this.outputPackageName)
+
+        if (this.outputPackageName == "xxx") {
+            logger.error("shit, why can I not set configuration options?")
+            exitProcess(1)
+        }
+
+        logger.info("starting postgres container")
+        val container = JootainerPlugin.KPostgreSQLContainer("postgres:11-alpine")
+        container.start()
+        val url = container.jdbcUrl
+        val user = container.username
+        val password = container.password
+        logger.info("successfully started container: ${url}, ${user}, ${password}")
+
+        /* start flyway */
+        logger.info("starting flyway migration")
+        val flyway = Flyway.configure()
+            .dataSource(url, user, password)
+            .load()
+        flyway.info()
+        flyway.migrate()
+        logger.info("flyway migration successful")
+
+        /* jooq code generation */
+
+        logger.info("starting jooq code generation")
+        val jooqConf: Configuration = Configuration()
+            .withJdbc(
+                Jdbc()
+                    .withDriver("org.postgresql.Driver")
+                    .withUrl(url)
+                    .withUser(user)
+                    .withPassword(password)
+            )
+            .withGenerator(
+                Generator()
+                    .withStrategy(Strategy().withName("org.jooq.codegen.DefaultGeneratorStrategy"))
+                    .withDatabase(
+                        Database()
+                            .withName("org.jooq.meta.postgres.PostgresDatabase")
+                            .withInputSchema("public")
+                    )
+                    .withGenerate(
+                        Generate()
+                            .withRelations(true)
+                            .withRecords(true)
+                            .withImmutablePojos(true)
+                            .withJavaTimeTypes(true)
+                            .withIndexes(true)
+                            .withRoutines(true)
+                    )
+                    .withTarget(
+                        Target()
+                            .withDirectory(outputDirectory)
+                            .withPackageName(outputPackageName)
+                    )
+            )
+
+        GenerationTool.generate(jooqConf)
+        logger.info("jooq code generation successful")
+        container.stop()
+    }
+
+
+}
+
