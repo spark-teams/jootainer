@@ -1,16 +1,16 @@
 package de.sparkteams.jootainer
 
 import org.flywaydb.core.Flyway
-import org.gradle.api.*
+import org.gradle.api.DefaultTask
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.jooq.codegen.GenerationTool
 import org.jooq.meta.jaxb.*
-import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Target
-import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.PostgreSQLContainer
 import java.io.File
 import kotlin.system.exitProcess
@@ -30,6 +30,7 @@ open class JootainerPlugin : Plugin<Project> {
             generateJooqFiles.outputPackageName = ext.packageName
             generateJooqFiles.outputDirectory = ext.outputDir
             generateJooqFiles.migrationDirectory = ext.migrationDir
+            generateJooqFiles.generate = ext.generate ?: Generate()
         }
 
 
@@ -45,6 +46,9 @@ open class GenerateJooqFiles : DefaultTask() {
 
     @get:Input
     var outputPackageName = "jootainer";
+
+    @get:Input
+    var generate: Generate = Generate()
 
     @OutputDirectory
     var outputDirectory = "src/main/kotlin"
@@ -105,15 +109,7 @@ open class GenerateJooqFiles : DefaultTask() {
                             .withName("org.jooq.meta.postgres.PostgresDatabase")
                             .withInputSchema("public")
                     )
-                    .withGenerate(
-                        Generate()
-                            .withRelations(true)
-                            .withRecords(true)
-                            .withImmutablePojos(true)
-                            .withJavaTimeTypes(true)
-                            .withIndexes(true)
-                            .withRoutines(true)
-                    )
+                    .withGenerate(this.generate)
                     .withTarget(
                         Target()
                             .withDirectory(outputDirectory)
