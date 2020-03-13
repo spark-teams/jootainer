@@ -27,13 +27,8 @@ open class JootainerPlugin : Plugin<Project> {
 
         project.afterEvaluate {
             var ext = project.extensions.getByType(JootainerExtension::class.java)
-            generateJooqFiles.outputPackageName = ext.packageName
-            generateJooqFiles.outputDirectory = ext.outputDir
-            generateJooqFiles.migrationDirectory = ext.migrationDir
-            generateJooqFiles.generate = ext.generate ?: Generate()
+            generateJooqFiles.extension = ext;
         }
-
-
 
         project.tasks.getByName("compileKotlin").dependsOn(generateJooqFiles)
         project.tasks.getByName("compileJava").dependsOn(generateJooqFiles)
@@ -41,18 +36,22 @@ open class JootainerPlugin : Plugin<Project> {
 }
 
 open class GenerateJooqFiles : DefaultTask() {
-    @InputDirectory
-    var migrationDirectory = "src/main/resources/db/migration"
+    lateinit var extension: JootainerExtension
 
-    @get:Input
-    var outputPackageName = "jootainer";
+    val outputPackageName: String
+        get() = this.extension.packageName
 
-    @get:Input
-    var generate: Generate = Generate()
+    val outputDirectory: String
+        @OutputDirectory
+        get() = this.extension.outputDir
 
-    @OutputDirectory
-    var outputDirectory = "src/main/kotlin"
+    val generate: Generate
+        @Input
+        get() = this.extension.generate ?: Generate()
 
+    val migrationDirectory: String
+        @InputDirectory
+        get() = this.extension.migrationDir
 
     @InputDirectory
     fun getMigrationDir(): File {

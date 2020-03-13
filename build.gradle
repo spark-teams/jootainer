@@ -8,9 +8,6 @@ plugins {
 group 'de.sparkteams'
 version '0.9-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
-
 repositories {
     mavenCentral()
 }
@@ -18,7 +15,6 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-//    testCompile group: 'junit', name: 'junit', version: '4.12'
     implementation gradleApi()
     implementation localGroovy()
     implementation("org.testcontainers:testcontainers:1.11.4")
