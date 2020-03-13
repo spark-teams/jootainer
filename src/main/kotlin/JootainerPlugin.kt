@@ -13,7 +13,6 @@ import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
 import java.io.File
-import kotlin.system.exitProcess
 
 open class JootainerPlugin : Plugin<Project> {
 
@@ -27,7 +26,7 @@ open class JootainerPlugin : Plugin<Project> {
 
         project.afterEvaluate {
             var ext = project.extensions.getByType(JootainerExtension::class.java)
-            generateJooqFiles.extension = ext;
+            generateJooqFiles.extension = ext
         }
 
         project.tasks.getByName("compileKotlin").dependsOn(generateJooqFiles)
@@ -64,14 +63,6 @@ open class GenerateJooqFiles : DefaultTask() {
 
     @TaskAction
     fun run() {
-        logger.info("starting generateJooq task with the following settings")
-        logger.info("package name : " + this.outputPackageName)
-
-        if (this.outputPackageName == "xxx") {
-            logger.error("shit, why can I not set configuration options?")
-            exitProcess(1)
-        }
-
         logger.info("starting postgres container")
         val container = JootainerPlugin.KPostgreSQLContainer("postgres:11-alpine")
         container.start()
