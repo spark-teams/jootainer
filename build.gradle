@@ -17,10 +17,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation gradleApi()
     implementation localGroovy()
-    implementation("org.testcontainers:testcontainers:1.11.4")
-    implementation("org.testcontainers:postgresql:1.11.4")
-    implementation("org.flywaydb:flyway-core:6.0.3")
-    implementation("org.jooq:jooq-codegen:3.12.3")
+    implementation("org.testcontainers:testcontainers:1.11.4") // MIT
+    implementation("org.testcontainers:postgresql:1.11.4") // MIT
+    implementation("org.flywaydb:flyway-core:6.0.3") // Apache 2.0
+    implementation("org.jooq:jooq-codegen:3.12.3") // Apache 2.0
 
     compile("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.61")
 }
