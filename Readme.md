@@ -3,9 +3,9 @@
 Therefore, `jootainer` helps you to keep your build process self-contained and deterministic.
 
 `jootainer` performs the following steps:
-1. start a postgresql container via Docker
-2. run Flyway migrations
-3. generate Jooq files
+1. Start a postgresql container via [test-containers](https://www.testcontainers.org/)
+2. Run [Flyway](https://flywaydb.org/) migration scripts
+3. Run [jooq-codegen](https://www.jooq.org/doc/latest/manual/code-generation/codegen-configuration/)
 
 In other words: `jootainer = test-containers + flyway + jooq-codegen`
 
@@ -41,13 +41,13 @@ configure<de.sparkteams.jootainer.JootainerExtension> {
 
 
 ## License
-see [License](./license)
+see [License](./LICENSE)
 
 ## Contributing
 
-This software is working early version, it covers our specific use cases but might need more configuration
- options for your case. We welcome any feedback but especially feedback that tells us how *you* 
- use Jooq and how jootainer can be adapted to your case. 
+This software is a working early version, it covers our specific use cases but might need more configuration
+ options for your case. We welcome especially feedback that tells us how *you* 
+ use Jooq and how `jootainer` could be make useful for you.
 
 
 
