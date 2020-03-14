@@ -52,6 +52,10 @@ open class GenerateJooqFiles : DefaultTask() {
         @InputDirectory
         get() = this.extension.migrationDir
 
+    val image: String
+        @Input
+        get() = this.extension.image
+
     @InputDirectory
     fun getMigrationDir(): File {
         return File(this.migrationDirectory); }
@@ -64,7 +68,7 @@ open class GenerateJooqFiles : DefaultTask() {
     @TaskAction
     fun run() {
         logger.info("starting postgres container")
-        val container = JootainerPlugin.KPostgreSQLContainer("postgres:11-alpine")
+        val container = JootainerPlugin.KPostgreSQLContainer(image)
         container.start()
         val url = container.jdbcUrl
         val user = container.username

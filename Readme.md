@@ -21,6 +21,7 @@ plugins {
 and (if you're unhappy with the defaults) configure it like this:
 ```kotlin
 configure<de.sparkteams.jootainer.JootainerExtension> {
+    image = "postgres:11-alpine"
     packageName = "com.myproject.generated.jooq"
     migrationDir = "src/main/resources/db/migration"
     outputDir = "src/main/kotlin"
@@ -32,6 +33,7 @@ configure<de.sparkteams.jootainer.JootainerExtension> {
 
 | Option | Description|
 | -------| ----- | 
+| `image` | image name (default: `postgres:11-alpine`)|
 | `packageName` | name of the package for generated classes (default `db.jootainer`)";
 | `migrationDir` | directory in which jootainer looks for flyway migrations (default `src/main/resources/db/migration`)
 | `outputDir` | directory to write the generated files (default: src/main/kotlin)
