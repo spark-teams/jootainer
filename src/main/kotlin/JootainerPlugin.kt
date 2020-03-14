@@ -26,7 +26,7 @@ open class JootainerPlugin : Plugin<Project> {
 
         project.afterEvaluate {
             var ext = project.extensions.getByType(JootainerExtension::class.java)
-            generateJooqFiles.extension = ext
+            generateJooqFiles.setExtension(ext)
         }
 
         project.tasks.getByName("compileKotlin").dependsOn(generateJooqFiles)
@@ -35,9 +35,14 @@ open class JootainerPlugin : Plugin<Project> {
 }
 
 open class GenerateJooqFiles : DefaultTask() {
-    lateinit var extension: JootainerExtension
+    private lateinit var extension: JootainerExtension
+
+    fun setExtension(extension: JootainerExtension) {
+        this.extension = extension
+    }
 
     val outputPackageName: String
+        @Input
         get() = this.extension.packageName
 
     val outputDirectory: String
