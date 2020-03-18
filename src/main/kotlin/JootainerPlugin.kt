@@ -14,18 +14,20 @@ import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
 import java.io.File
 
+/* somehow Kotlin cannot infer self-referential generic classes */
+class KPostgreSQLContainer(imageName: String) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
+
 open class JootainerPlugin : Plugin<Project> {
 
-    class KPostgreSQLContainer(imageName: String) : PostgreSQLContainer<KPostgreSQLContainer>(imageName)
 
     override fun apply(project: Project) {
         project.extensions.create("jootainer", JootainerExtension::class.java)
 
         val generateJooqFiles =
-            project.tasks.register<GenerateJooqFiles>("jootainer", GenerateJooqFiles::class.java).get()
+            project.tasks.register("jootainer", JootainerTask::class.java).get()
 
         project.afterEvaluate {
-            var ext = project.extensions.getByType(JootainerExtension::class.java)
+            val ext = project.extensions.getByType(JootainerExtension::class.java)
             generateJooqFiles.setExtension(ext)
         }
 
@@ -34,7 +36,7 @@ open class JootainerPlugin : Plugin<Project> {
     }
 }
 
-open class GenerateJooqFiles : DefaultTask() {
+open class JootainerTask : DefaultTask() {
     private lateinit var extension: JootainerExtension
 
     fun setExtension(extension: JootainerExtension) {
@@ -72,33 +74,42 @@ open class GenerateJooqFiles : DefaultTask() {
 
     @TaskAction
     fun run() {
-        logger.info("starting postgres container")
-        val container = JootainerPlugin.KPostgreSQLContainer(image)
-        container.start()
-        val url = container.jdbcUrl
-        val user = container.username
-        val password = container.password
-        logger.info("successfully started container: ${url}, ${user}, ${password}")
+        withContainer {
+            this.runMigrations(it)
+            this.runCodegen(it)
+        }
+    }
 
-        /* start flyway */
+    private fun <A> withContainer(k: (KPostgreSQLContainer) -> A): A {
+        logger.info("starting postgres container")
+        val container = KPostgreSQLContainer(image)
+        container.start()
+        val result = k(container)
+        logger.info("stopping postgres container")
+        container.stop()
+        return result
+    }
+
+    private fun runMigrations(container: KPostgreSQLContainer) {
         logger.info("starting flyway migration")
         val flyway = Flyway.configure()
-            .dataSource(url, user, password)
+            .dataSource(container.jdbcUrl, container.username, container.password)
             .load()
         flyway.info()
         flyway.migrate()
         logger.info("flyway migration successful")
 
-        /* jooq code generation */
+    }
 
+    private fun runCodegen(container: KPostgreSQLContainer) {
         logger.info("starting jooq code generation")
         val jooqConf: Configuration = Configuration()
             .withJdbc(
                 Jdbc()
                     .withDriver("org.postgresql.Driver")
-                    .withUrl(url)
-                    .withUser(user)
-                    .withPassword(password)
+                    .withUrl(container.jdbcUrl)
+                    .withUser(container.username)
+                    .withPassword(container.password)
             )
             .withGenerator(
                 Generator()
@@ -118,7 +129,6 @@ open class GenerateJooqFiles : DefaultTask() {
 
         GenerationTool.generate(jooqConf)
         logger.info("jooq code generation successful")
-        container.stop()
     }
 
 
