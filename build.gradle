@@ -35,7 +35,7 @@ compileTestKotlin {
 
 pluginBundle {
     website = "sparkteams.de"
-    vcsUrl = "https://github.com/sparkteams/jootainer"
+    vcsUrl = "https://github.com/spark-teams/jootainer"
     tags = ["code-generation", "jooq", "test-containers"]
 }
 gradlePlugin {
