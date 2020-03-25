@@ -42,7 +42,7 @@ gradlePlugin {
     plugins {
         create("jootainer") {
             id = "de.sparkteams.jootainer"
-            version = "0.9.1-SNAPSHOT"
+            version = "0.9.1"
             displayName = "jootainer"
             description = "generate Jooq code using a temporary Postgresql Docker container"
             implementationClass = "de.sparkteams.jootainer.JootainerPlugin"
