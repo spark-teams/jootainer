@@ -47,7 +47,7 @@ see [License](./LICENSE)
 
 This software is a working early version, it covers our specific use cases but might need more configuration
  options for your case. We welcome especially feedback that tells us how *you* 
- use Jooq and how `jootainer` could be make useful for you.
+ use Jooq and how `jootainer` could be useful for you.
 
 
 
