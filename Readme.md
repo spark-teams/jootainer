@@ -14,7 +14,7 @@ Add `jootainer` to your `plugins` section
 ```kotlin
 plugins {
     // ...
-    id("de.sparkteams.jootainer") version "0.9-SNAPSHOT"
+    id("de.sparkteams.jootainer") version "0.9.1"
 }
 ```
 
