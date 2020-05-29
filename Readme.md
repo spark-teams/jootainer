@@ -18,6 +18,13 @@ plugins {
 }
 ```
 
+Or in Groovy syntax:
+```groovy
+plugins {
+  id "de.sparkteams.jootainer" version "0.9.2"
+}
+```
+
 and (if you're unhappy with the defaults) configure it like this:
 ```kotlin
 configure<de.sparkteams.jootainer.JootainerExtension> {
