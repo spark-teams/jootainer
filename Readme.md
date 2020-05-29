@@ -23,8 +23,8 @@ and (if you're unhappy with the defaults) configure it like this:
 configure<de.sparkteams.jootainer.JootainerExtension> {
     image = "postgres:11-alpine"
     packageName = "com.myproject.generated.jooq"
-    migrationDir = "src/main/resources/db/migration"
-    outputDir = "src/main/kotlin"
+    migrationDir = "${projectDir}/src/main/resources/db/migration"
+    outputDir = "${projectDir}/src/main/kotlin"
     generate = org.jooq.meta.jaxb.Generate().withJavaTimeTypes(false)
 
 }
